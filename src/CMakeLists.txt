@@ -4,6 +4,8 @@ set(RECOGNITION_LIB_NAME logo_recognition_lib)
 set(SRC_LIST
     LogoRecognizer.cc
     LogoRecognizer.h
+    Image.cc
+    Image.h
 )
 
 add_library(${RECOGNITION_LIB_NAME} ${SRC_LIST})

@@ -13,4 +13,4 @@ set_property(TARGET Catch2::Catch PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CATC
 
 add_subdirectory(src)
 add_subdirectory(app)
-add_subdirectory(tests)
+#add_subdirectory(tests)
