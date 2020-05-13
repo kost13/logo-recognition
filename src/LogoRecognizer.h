@@ -17,16 +17,16 @@ struct hsvRange {
 class LogoRecognizer {
  public:
   LogoRecognizer() = default;
-  bool recognize(const std::vector<std::string> &files);
+  bool recognize(const std::string &file);
   bool processReferenceImage(const std::string &file);
+  bool setDebug(bool debug);
+
+  using segmentsVector = std::vector<lr::segment::Segment>;
 
  private:
-  //  void showSegments(const Image &img,
-  //                    const std::vector<lr::segment::Segment> &segments);
-  void extractComponents(const Image &img);
-  std::vector<segment::Segment> findSegments(Image &image);
+  bool debug_{false};
+  segmentsVector findSegments(Image &image);
   void propagateSegment(Image &image, int row, int col, segment::Segment &s);
-  std::vector<lr::segment::Segment> computeInvariants(
-      const std::vector<lr::segment::Segment> &segments);
+  segmentsVector computeInvariants(const segmentsVector &segments);
 };
 }  // namespace lr

@@ -17,6 +17,7 @@ class Image {
  public:
   explicit Image(const std::string& file);
   Image(const Image& o);
+  Image(const cv::Mat_<cv::Vec3b>& img);
 
   const cv::Mat_<cv::Vec3b>& img() const;
   void show(const std::string& title = "Image") const;
@@ -25,6 +26,8 @@ class Image {
  private:
   cv::Mat_<cv::Vec3b> img_;
 };
+
+Image transformImage(const Image& I, const std::vector<double>& m3x3);
 
 bool inrange(double v, double min, double max);
 

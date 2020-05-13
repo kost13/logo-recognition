@@ -106,7 +106,6 @@ double lr::segment::invariant(const Segment &segment, int n) {
       auto m00_5 = m00 * m00 * m00 * m00 * m00;
       return (M30_12 * M30_12 + M21_03 * M21_03) / m00_5;
     }
-
     case 7: {
       auto M11 = M(1, 1);
       return (M(2, 0) * M(0, 2) - M11) / m00 / m00 / m00 / m00;

@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -13,15 +14,15 @@ int main(int argc, const char* argv[]) {
     return -1;
   }
 
-  if (args[0] == "-r" && argc > 2) {
-    if (recognizer.processReferenceImage(args[1])) {
-      return 0;
-    }
-    return -1;
+  if (std::find(args.begin(), args.end(), "-d") != args.end()) {
+    recognizer.setDebug(true);
   }
 
-  if (recognizer.recognize(args)) {
-    return 0;
+  for (const auto& arg : args) {
+    if (arg[0] != '-') {
+      recognizer.recognize(arg);
+    }
   }
-  return -1;
+
+  return 0;
 }

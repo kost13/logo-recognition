@@ -5,72 +5,53 @@
 
 #include <iostream>
 
-const int min_pixels_size_in_segment = 144;
+const int min_pixels_size_in_segment = 169;
 
-bool lr::LogoRecognizer::recognize(const std::vector<std::string> &files) {
-  for (const auto &f : files) {
-    Image img(f);
-    img.show();
+bool lr::LogoRecognizer::recognize(const std::string &file) {
+  if (debug_) {
+    std::cout << "Analyzing file " << file << std::endl;
   }
+
+  Image img(file);
+
+  hsvRange range{190, 40, 60, 255, 70, 255};
+
+  if (debug_) {
+    img.show("Original image");
+    cv::waitKey(-1);
+  }
+
+  auto thresholded_image = toHSV(img, range);
+
+  if (debug_) {
+    thresholded_image.show("Thresholded image");
+    cv::waitKey(-1);
+  }
+
+  auto all_segments = findSegments(thresholded_image);
+
+  if (debug_) {
+    thresholded_image.show("Segmented image");
+    cv::waitKey(-1);
+  }
+
+  auto good_segments = computeInvariants(all_segments);
+  showSegments(img, good_segments, "Detected objects");
+
   cv::waitKey(0);
 }
 
 bool lr::LogoRecognizer::processReferenceImage(const std::string &file) {
   Image img(file);
-  //  img.show();
-  extractComponents(img);
+  //  extractComponents(img);
   cv::waitKey(0);
 }
 
-// void lr::LogoRecognizer::showSegments(
-//    const Image &img, const std::vector<lr::segment::Segment> &segments) {
-//  auto cols = img.img().cols;
-//  auto rows = img.img().rows;
+bool lr::LogoRecognizer::setDebug(bool debug) { debug_ = debug; }
 
-//  cv::Mat_<cv::Vec3b> i(rows, cols);
-
-//  for (const auto &s : segments) {
-//    auto c = colors::randomColor();
-
-//    for (auto it = s.pixels.begin(); it != s.pixels.end(); ++it) {
-//      auto r = *it;
-//      auto co = *(++it);
-//      i(r, co)[0] = c.b;
-//      i(r, co)[1] = c.g;
-//      i(r, co)[2] = c.r;
-//    }
-//  }
-//  cv::imshow("segments", i);
-//}
-
-void lr::LogoRecognizer::extractComponents(const lr::Image &img) {
-  hsvRange yellowRange{10, 120, 120, 255, 120, 255};
-  hsvRange redRange{100, 255, 60, 255, 60, 255};
-
-  auto yellow = toHSV(img, yellowRange);
-  //  yellow.show("hsv yellow");
-
-  auto red = toHSV(img, redRange);
-  //  red.show("hsv red");
-
-  auto ys = findSegments(yellow);
-  yellow.show("seg yellow");
-  auto segments = computeInvariants(ys);
-  showSegments(img, segments, "img");
-
-  //  auto rs = findSegments(red);
-  //  red.show("seg red");
-  //  auto segments = computeInvariants(rs);
-  //  showSegments(img, segments, "img");
-
-  //  auto rs = findSegments(red);
-  //  red.show("seg red");
-  //  computeInvariants(rs);
-}
-
-std::vector<lr::segment::Segment> lr::LogoRecognizer::findSegments(
+lr::LogoRecognizer::segmentsVector lr::LogoRecognizer::findSegments(
     Image &image) {
-  std::vector<segment::Segment> segments;
+  segmentsVector segments;
 
   auto img = image.img();
 
@@ -94,9 +75,8 @@ std::vector<lr::segment::Segment> lr::LogoRecognizer::findSegments(
     }
   }
 
-  std::cout << "segments size: " << segments.size() << std::endl;
-  for (const auto &s : segments) {
-    std::cout << "seg size: " << s.pixels.size() / 2 << std::endl;
+  if (debug_) {
+    std::cout << "Detected " << segments.size() << " segments" << std::endl;
   }
 
   return segments;
@@ -137,51 +117,40 @@ void lr::LogoRecognizer::propagateSegment(lr::Image &image, int row, int col,
   }
 }
 
-std::vector<lr::segment::Segment> lr::LogoRecognizer::computeInvariants(
-    const std::vector<lr::segment::Segment> &segments) {
-  //  auto yellow_inv1 = 0.187858;
+lr::LogoRecognizer::segmentsVector lr::LogoRecognizer::computeInvariants(
+    const segmentsVector &segments) {
+  auto inv2 = 0.000800469;
+  auto inv3 = 3.21256e-06;
+  auto inv7 = 0.067045;
 
-  // yellow
-  auto yellow_inv2 = 8.00315e-05;
-  auto yellow_inv7 = 0.00880265;
-  auto yellow_inv3 = 1.19018e-05;
+  auto accepted_diff2 = 0.8 * 0.000800469;
+  auto accepted_diff3 = 0.6 * 3.21256e-06;
+  auto accepted_diff7 = 1 * 0.067045;
 
-  // red
-  //  auto yellow_inv2 = 0.000771373;
-  //  auto yellow_inv7 = 0.0694663;
-
-  //  auto accepted_diff1 = 0.03;
-  auto accepted_diff2 = 160e-05;
-  auto accepted_diff3 = 0.9e-05;
-  auto accepted_diff7 = 0.0025;
-
-  std::vector<lr::segment::Segment> good_segments;
+  segmentsVector good_segments;
 
   for (const auto &s : segments) {
-    //    auto i1 = segment::invariant(s, 1);
-    //    auto diff1 = fabs(i1 - yellow_inv1);
     auto i2 = segment::invariant(s, 2);
-    auto diff2 = fabs(i2 - yellow_inv2);
+    auto diff2 = fabs(i2 - inv2);
     auto i7 = segment::invariant(s, 7);
-    auto diff7 = fabs(i7 - yellow_inv7);
+    auto diff7 = fabs(i7 - inv7);
     auto i3 = segment::invariant(s, 3);
-    auto diff3 = fabs(i3 - yellow_inv3);
-
-    std::cout << i3 << " " << i2 << " " << i7 << std::endl;
-
-    //    auto avg2 = diff2;
-    //    if (avg2 < accepted_diff2) {
-    //      good_segments.push_back(s);
-    //    }
-    //    auto avg7 = diff7;
-    //    if (avg7 < accepted_diff7) {
-    //      good_segments.push_back(s);
-    //    }
+    auto diff3 = fabs(i3 - inv3);
 
     if (diff3 < accepted_diff3 && diff2 < accepted_diff2 &&
         diff7 < accepted_diff7) {
       good_segments.push_back(s);
+      if (debug_) {
+        std::cout << "Found good segment M2=" << i2 << " M3=" << i3
+                  << " M7=" << i7 << std::endl;
+      }
     }
   }
+
+  if (debug_) {
+    std::cout << "Segments selected after invariants check: "
+              << good_segments.size() << std::endl;
+  }
+
   return good_segments;
 }
