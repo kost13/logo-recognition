@@ -6,37 +6,40 @@
 #include <string>
 
 #include "Colors.h"
-#include "LogoRecognizer.h"
 
 namespace lr {
 namespace segment {
 class Segment;
 }
 
+namespace img {
+
 class Image {
  public:
   explicit Image(const std::string& file);
+  explicit Image(const cv::Mat_<cv::Vec3b>& img);
   Image(const Image& o);
-  Image(const cv::Mat_<cv::Vec3b>& img);
+  Image& operator=(const Image& o);
+  Image(Image&& o) = default;
+  Image& operator=(Image&& o) = default;
+  ~Image() = default;
 
   const cv::Mat_<cv::Vec3b>& img() const;
   void show(const std::string& title = "Image") const;
   void colorPixel(int row, int col, colors::colorRgb color);
+  void transformImage(const std::vector<double>& m3x3);
 
  private:
   cv::Mat_<cv::Vec3b> img_;
 };
 
-Image transformImage(const Image& I, const std::vector<double>& m3x3);
+inline bool inrange(double v, double min, double max);
 
-bool inrange(double v, double min, double max);
-
-double M00(const Image& I);
-
-Image toHSV(const Image& I, hsvRange range);
+Image thresholdHsv(const Image& I);
 
 void showSegments(const Image& I,
                   const std::vector<lr::segment::Segment>& segments,
                   const std::string& title = "Image");
 
+}  // namespace img
 }  // namespace lr

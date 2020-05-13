@@ -3,6 +3,10 @@
 #include <cmath>
 #include <iostream>
 
+namespace {
+auto big_int = 1000000000;
+}
+
 double lr::segment::moment(const Segment &segment, int p, int q) {
   double m{0};
   for (auto it = segment.pixels.begin(); it != segment.pixels.end(); ++it) {
@@ -119,7 +123,7 @@ double lr::segment::invariant(const Segment &segment, int n) {
 }
 
 lr::segment::Range lr::segment::range(const lr::segment::Segment &segment) {
-  Range range{100000, 0, 100000, 0};
+  Range range{big_int, 0, big_int, 0};
 
   for (auto it = segment.pixels.begin(); it != segment.pixels.end(); ++it) {
     auto row = *it;

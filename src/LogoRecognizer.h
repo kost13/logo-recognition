@@ -7,12 +7,9 @@ namespace lr {
 namespace segment {
 class Segment;
 }
-
+namespace img {
 class Image;
-
-struct hsvRange {
-  double h_min, h_max, s_min, s_max, v_min, v_max;
-};
+}
 
 class LogoRecognizer {
  public:
@@ -25,8 +22,9 @@ class LogoRecognizer {
 
  private:
   bool debug_{false};
-  segmentsVector findSegments(Image &image);
-  void propagateSegment(Image &image, int row, int col, segment::Segment &s);
+  segmentsVector findSegments(img::Image &image);
+  void propagateSegment(img::Image &image, int row, int col,
+                        segment::Segment &s);
   segmentsVector computeInvariants(const segmentsVector &segments);
 };
 }  // namespace lr

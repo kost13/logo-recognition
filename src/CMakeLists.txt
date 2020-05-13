@@ -10,6 +10,7 @@ set(SRC_LIST
     Segment.h
     Colors.cc
     Colors.h
+    Parameters.h
 )
 
 add_library(${RECOGNITION_LIB_NAME} ${SRC_LIST})

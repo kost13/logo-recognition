@@ -8,7 +8,7 @@ namespace segment {
 
 struct Segment {
   std::vector<int> pixels;
-  colors::colorRgb color;
+  colors::colorRgb color{};
 };
 
 struct Range {

@@ -1,6 +1,7 @@
 #include "LogoRecognizer.h"
 #include "Image.h"
 
+#include "Parameters.h"
 #include "Segment.h"
 
 #include <iostream>
@@ -12,16 +13,14 @@ bool lr::LogoRecognizer::recognize(const std::string &file) {
     std::cout << "Analyzing file " << file << std::endl;
   }
 
-  Image img(file);
-
-  hsvRange range{190, 40, 60, 255, 70, 255};
+  img::Image img(file);
 
   if (debug_) {
     img.show("Original image");
     cv::waitKey(-1);
   }
 
-  auto thresholded_image = toHSV(img, range);
+  auto thresholded_image = img::thresholdHsv(img);
 
   if (debug_) {
     thresholded_image.show("Thresholded image");
@@ -42,15 +41,14 @@ bool lr::LogoRecognizer::recognize(const std::string &file) {
 }
 
 bool lr::LogoRecognizer::processReferenceImage(const std::string &file) {
-  Image img(file);
+  img::Image img(file);
   //  extractComponents(img);
   cv::waitKey(0);
 }
 
 bool lr::LogoRecognizer::setDebug(bool debug) { debug_ = debug; }
 
-lr::LogoRecognizer::segmentsVector lr::LogoRecognizer::findSegments(
-    Image &image) {
+auto lr::LogoRecognizer::findSegments(img::Image &image) -> segmentsVector {
   segmentsVector segments;
 
   auto img = image.img();
@@ -82,7 +80,7 @@ lr::LogoRecognizer::segmentsVector lr::LogoRecognizer::findSegments(
   return segments;
 }
 
-void lr::LogoRecognizer::propagateSegment(lr::Image &image, int row, int col,
+void lr::LogoRecognizer::propagateSegment(img::Image &image, int row, int col,
                                           segment::Segment &s) {
   s.pixels.push_back(row);
   s.pixels.push_back(col);
@@ -117,28 +115,23 @@ void lr::LogoRecognizer::propagateSegment(lr::Image &image, int row, int col,
   }
 }
 
-lr::LogoRecognizer::segmentsVector lr::LogoRecognizer::computeInvariants(
-    const segmentsVector &segments) {
-  auto inv2 = 0.000800469;
-  auto inv3 = 3.21256e-06;
-  auto inv7 = 0.067045;
-
-  auto accepted_diff2 = 0.8 * 0.000800469;
-  auto accepted_diff3 = 0.6 * 3.21256e-06;
-  auto accepted_diff7 = 1 * 0.067045;
-
+auto lr::LogoRecognizer::computeInvariants(const segmentsVector &segments)
+    -> segmentsVector {
   segmentsVector good_segments;
 
   for (const auto &s : segments) {
     auto i2 = segment::invariant(s, 2);
-    auto diff2 = fabs(i2 - inv2);
-    auto i7 = segment::invariant(s, 7);
-    auto diff7 = fabs(i7 - inv7);
-    auto i3 = segment::invariant(s, 3);
-    auto diff3 = fabs(i3 - inv3);
+    auto diff2 = fabs(i2 - params::Invariants::inv2);
 
-    if (diff3 < accepted_diff3 && diff2 < accepted_diff2 &&
-        diff7 < accepted_diff7) {
+    auto i3 = segment::invariant(s, 3);
+    auto diff3 = fabs(i3 - params::Invariants::inv3);
+
+    auto i7 = segment::invariant(s, 7);
+    auto diff7 = fabs(i7 - params::Invariants::inv7);
+
+    if (diff2 < params::Invariants::inv2_accepted_diff &&
+        diff3 < params::Invariants::inv3_accepted_diff &&
+        diff7 < params::Invariants::inv7_accepted_diff) {
       good_segments.push_back(s);
       if (debug_) {
         std::cout << "Found good segment M2=" << i2 << " M3=" << i3
