@@ -2,13 +2,7 @@
 
 #include <iostream>
 
-namespace {
-bool hOk(double v) { return v > 40 && v < 70; }
-bool sOk(double v) { return v > 80 && v < 110; }
-bool vOk(double v) { return v > 80 && v < 120; }
-
-const double eps = 0.00001;
-}
+#include "Segment.h"
 
 lr::Image::Image(const std::string &file) : img_(cv::imread(file)) {}
 
@@ -20,7 +14,7 @@ void lr::Image::show(const std::string &title) const {
   cv::imshow(title, img_);
 }
 
-void lr::Image::colorPixel(int row, int col, lr::colorRgb color) {
+void lr::Image::colorPixel(int row, int col, colors::colorRgb color) {
   img_(row, col)[0] = color.b;
   img_(row, col)[1] = color.g;
   img_(row, col)[2] = color.r;
@@ -31,8 +25,8 @@ lr::Image lr::toHSV(const lr::Image &I, hsvRange range) {
   auto img = hsvI.img();
   for (int row = 0; row < img.rows; ++row) {
     for (int col = 0; col < img.cols; ++col) {
-      auto hsv =
-          rgbToHsv({img(row, col)[2], img(row, col)[1], img(row, col)[0]});
+      auto hsv = colors::rgbToHsv(
+          {img(row, col)[2], img(row, col)[1], img(row, col)[0]});
 
       //      std::cout << "r: " << r << " g: " << g << " b: " << b << " === h:"
       //      << h
@@ -56,44 +50,33 @@ bool lr::inrange(double v, double min, double max) {
   return v >= min && v <= max;
 }
 
-lr::colorHsv lr::rgbToHsv(const lr::colorRgb &c) {
-  auto r = c.r / 255.;
-  auto g = c.g / 255.;
-  auto b = c.b / 255.;
+void lr::showSegments(const lr::Image &I,
+                      const std::vector<lr::segment::Segment> &segments,
+                      const std::string &title) {
+  auto img = I.img();
+  for (const auto &s : segments) {
+    auto range = segment::range(s);
 
-  auto min = std::min(r, std::min(g, b));
-  auto max = std::max(r, std::max(g, b));
-
-  double h{}, s{}, v{};
-
-  v = max;
-
-  auto delta = max - min;
-  if (delta < eps) {
-    s = 0;
-    h = 0;
-  } else {
-    if (max > 0.0) {
-      s = (delta / max);
-    }
-    if (r >= max) {
-      h = (g - b) / delta;
-    } else if (g >= max) {
-      h = 2.0 + (b - r) / delta;
-    } else {
-      h = 4.0 + (r - g) / delta;
+    for (auto col : {range.min_col, range.max_col}) {
+      for (auto row = range.min_row; row < range.max_row; ++row) {
+        for (int i = 0; i < 3; ++i) {
+          img(row, col)[i] = 0;
+          img(row, col - 1)[i] = 0;
+          img(row, col + 1)[i] = 0;
+        }
+      }
     }
 
-    h *= 60.0;
-
-    if (h < 0.0) {
-      h += 360.0;
+    for (auto row : {range.min_row, range.max_row}) {
+      for (auto col = range.min_col; col < range.max_col; ++col) {
+        for (int i = 0; i < 3; ++i) {
+          img(row, col)[i] = 0;
+          img(row - 1, col)[i] = 0;
+          img(row + 1, col)[i] = 0;
+        }
+      }
     }
   }
 
-  s *= 255;
-  v *= 255;
-  h *= 255. / 360;
-
-  return lr::colorHsv{int(h), int(s), int(v)};
+  cv::imshow(title, img);
 }

@@ -6,6 +6,10 @@ set(SRC_LIST
     LogoRecognizer.h
     Image.cc
     Image.h
+    Segment.cc
+    Segment.h
+    Colors.cc
+    Colors.h
 )
 
 add_library(${RECOGNITION_LIB_NAME} ${SRC_LIST})
