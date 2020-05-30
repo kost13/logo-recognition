@@ -18,6 +18,18 @@ int main(int argc, const char* argv[]) {
     recognizer.setDebug(true);
   }
 
+  if (std::find(args.begin(), args.end(), "-lp") != args.end()) {
+    recognizer.setLowPassFilter(true);
+  }
+
+  if (std::find(args.begin(), args.end(), "-hp") != args.end()) {
+    recognizer.setHighPassFilter(true);
+  }
+
+  if (std::find(args.begin(), args.end(), "-m") != args.end()) {
+    recognizer.setMedianFilter(true);
+  }
+
   for (const auto& arg : args) {
     if (arg[0] != '-') {
       recognizer.recognize(arg);

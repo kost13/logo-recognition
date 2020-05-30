@@ -6,6 +6,10 @@
 namespace lr {
 namespace segment {
 
+/**
+ * @brief The Segment struct represents a fragment of the image that is
+ * separated from the surrounding.
+ */
 struct Segment {
   std::vector<int> pixels;
   colors::colorRgb color{};

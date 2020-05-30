@@ -20,6 +20,36 @@ bool lr::LogoRecognizer::recognize(const std::string &file) {
     cv::waitKey(-1);
   }
 
+  if (median_) {
+    img.applyMedianTransform();
+    if (debug_) {
+      img.show("Median filter transformed image");
+      cv::imwrite("median.jpg", img.img());
+      cv::waitKey(-1);
+    }
+  }
+
+  if (low_pass_) {
+    std::vector<double> m3x3(9, 1.0 / 16.0);
+    m3x3[1] = m3x3[3] = m3x3[5] = m3x3[7] = 1.0 / 8.0;
+    m3x3[4] = 1.0 / 4.0;
+    img.transformImage(m3x3);
+    if (debug_) {
+      img.show("Low pass filter transformed image");
+      cv::imwrite("lp.jpg", img.img());
+      cv::waitKey(-1);
+    }
+  } else if (high_pass_) {
+    std::vector<double> m3x3(9, -0.02);
+    m3x3[4] = 1.016;
+    img.transformImage(m3x3);
+    if (debug_) {
+      img.show("High pass filter transformed image");
+      cv::imwrite("hp.jpg", img.img());
+      cv::waitKey(-1);
+    }
+  }
+
   auto thresholded_image = img::thresholdHsv(img);
 
   if (debug_) {
@@ -40,13 +70,19 @@ bool lr::LogoRecognizer::recognize(const std::string &file) {
   cv::waitKey(0);
 }
 
-bool lr::LogoRecognizer::processReferenceImage(const std::string &file) {
-  img::Image img(file);
-  //  extractComponents(img);
-  cv::waitKey(0);
+void lr::LogoRecognizer::setDebug(bool debug) { debug_ = debug; }
+
+void lr::LogoRecognizer::setLowPassFilter(bool flag) {
+  low_pass_ = flag;
+  high_pass_ = !flag;
 }
 
-bool lr::LogoRecognizer::setDebug(bool debug) { debug_ = debug; }
+void lr::LogoRecognizer::setHighPassFilter(bool flag) {
+  high_pass_ = flag;
+  low_pass_ = !flag;
+}
+
+void lr::LogoRecognizer::setMedianFilter(bool flag) { median_ = flag; }
 
 auto lr::LogoRecognizer::findSegments(img::Image &image) -> segmentsVector {
   segmentsVector segments;

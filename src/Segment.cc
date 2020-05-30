@@ -112,7 +112,7 @@ double lr::segment::invariant(const Segment &segment, int n) {
     }
     case 7: {
       auto M11 = M(1, 1);
-      return (M(2, 0) * M(0, 2) - M11) / m00 / m00 / m00 / m00;
+      return (M(2, 0) * M(0, 2) - M11 * M11) / m00 / m00 / m00 / m00;
     }
     default:
       std::cout << "invariant " << n << " not supported" << std::endl;

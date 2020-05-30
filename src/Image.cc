@@ -5,6 +5,13 @@
 #include "Parameters.h"
 #include "Segment.h"
 
+namespace {
+double median(std::vector<double> &v) {
+  std::sort(v.begin(), v.end());
+  return v.at(v.size() / 2);
+}
+}
+
 lr::img::Image::Image(const std::string &file) : img_(cv::imread(file)) {}
 
 lr::img::Image::Image(const cv::Mat_<cv::Vec3b> &img) { img_ = img.clone(); }
@@ -35,16 +42,34 @@ void lr::img::Image::transformImage(const std::vector<double> &m3x3) {
 
   auto img = img_.clone();
 
-  for (int i = 2; i < img.rows - 2; ++i) {
-    for (int j = 2; j < img.cols - 2; ++j) {
+  for (int i = 1; i < img.rows - 1; ++i) {
+    for (int j = 1; j < img.cols - 1; ++j) {
       for (int c = 0; c < 3; c++) {
         double v{0};
-        for (int ii = -2; ii <= 2; ++ii) {
-          for (int jj = -2; jj <= 2; ++jj) {
-            v += img(i + ii, j + jj)[c] * m3x3[(ii + 2) * 5 + jj + 2];
+        for (int ii = -1; ii <= 1; ++ii) {
+          for (int jj = -1; jj <= 1; ++jj) {
+            v += img(i + ii, j + jj)[c] * m3x3[(ii + 1) * 3 + jj + 1];
           }
         }
         img_(i, j)[c] = static_cast<uchar>(std::min(255., std::max(0., v)));
+      }
+    }
+  }
+}
+
+void lr::img::Image::applyMedianTransform() {
+  auto img = img_.clone();
+
+  for (int i = 1; i < img.rows - 1; ++i) {
+    for (int j = 1; j < img.cols - 1; ++j) {
+      for (int c = 0; c < 3; c++) {
+        std::vector<double> window;
+        for (int ii = -1; ii <= 1; ++ii) {
+          for (int jj = -1; jj <= 1; ++jj) {
+            window.push_back(img(i + ii, j + jj)[c]);
+          }
+        }
+        img_(i, j)[c] = static_cast<uchar>(median(window));
       }
     }
   }
