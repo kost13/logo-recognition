@@ -10,7 +10,9 @@ auto big_int = 1000000000;
 double lr::segment::moment(const Segment &segment, int p, int q) {
   double m{0};
   for (auto it = segment.pixels.begin(); it != segment.pixels.end(); ++it) {
-    m += std::pow(*it, p) * std::pow(*(++it), q);
+      auto x = *it;
+      auto y = *(++it);
+    m += std::pow(x, p) * std::pow(y, q);
   }
   return m;
 }

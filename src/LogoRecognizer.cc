@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-const int min_pixels_size_in_segment = 169;
+const int min_pixels_size_in_segment = 81;
 
 bool lr::LogoRecognizer::recognize(const std::string &file) {
   if (debug_) {
@@ -170,8 +170,8 @@ auto lr::LogoRecognizer::computeInvariants(const segmentsVector &segments)
         diff7 < params::Invariants::inv7_accepted_diff) {
       good_segments.push_back(s);
       if (debug_) {
-        std::cout << "Found good segment M2=" << i2 << " M3=" << i3
-                  << " M7=" << i7 << std::endl;
+        std::cout << "Found segment M2=" << i2 << " M3=" << i3
+              << " M7=" << i7 << std::endl;
       }
     }
   }
