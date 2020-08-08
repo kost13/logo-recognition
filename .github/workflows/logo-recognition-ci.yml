@@ -1,0 +1,29 @@
+
+name: logo-recognition-ci
+
+on: [push, pull_request]
+jobs:
+  build_linux:
+    name: linux_build
+    runs-on: ubuntu-latest      
+    strategy:
+      fail-fast: true
+        
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          submodules: true
+      - uses: docker://kost13/opencv-cpp:latest
+      - name: build
+        run: |
+          cd ${{ runner.workspace }}  
+          mkdir -p build 
+          cd build     
+          cmake -DCMAKE_BUILD_TYPE=Release ${{ github.workspace }}      
+          cmake --build . --target all
+      - name: run_tests
+        run: |
+        cd ${{ runner.workspace }}
+        ./build/tests/logo_recognition_tests
+        
+      
