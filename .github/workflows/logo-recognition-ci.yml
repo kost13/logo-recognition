@@ -23,7 +23,7 @@ jobs:
           cmake --build . --target all
       - name: run_tests
         run: |
-        cd ${{ runner.workspace }}
-        ./build/tests/logo_recognition_tests
+          cd ${{ runner.workspace }}
+          ./build/tests/logo_recognition_tests
         
       
