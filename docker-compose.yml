@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  app:
+    container_name: logo-recognition
+    image: kost13/opencv-cpp
+    volumes: 
+      - .:/src/
+    stdin_open: true
+    tty: true
+
+
